@@ -1,0 +1,52 @@
+<?PHP
+abstract class LOGG{
+       // protected $Text;
+        protected $loggs;
+        public function newlog($text){
+                $this->loggs = date("[Y-m-d H:i:s]").serialize($text);
+        }
+        public function writelog(){
+        }
+}
+
+//Запись логов в текстовый файл (+ функция вывода на экран)----------
+class LogFile extends LOGG{
+        private $way = 'log.txt';
+        public function writelog(){
+                return file_put_contents($this->way, $this->loggs . "\n", FILE_APPEND);
+        }
+ //------------Удалить при желании------------------
+        public function writelog2(){
+            echo $this->loggs;
+        }
+//--------------------------------------------------
+}
+
+//Запись логов в mysql------------------------------------------------
+class LogDataBase extends LOGG{
+        private $msqli;
+        public function __construct( $user, $pass, $dbname )
+        {
+            $this->msqli = new mysqli($user, $pass, $dbname);
+    
+            if( $this->msqli->connect_errno ) {
+                throw new Exception('Mysqli error: ' . $this->msqli->connect_error);
+            }
+        }
+        public function writelog()
+        {
+            $stmt = $msqli->prepare('INSERT INTO log (loggs) values (?)');
+            $stmt->bindValue('s', $this->loggs);
+            return $stmt->execute();
+        }
+}
+
+//---------------------------Проверка работы--------------------------
+$Log = new LogFile('/log.txt');
+$Log->newlog('Message');
+$Log->writelog();
+$Log->writelog2();
+$mysqliLog = new LogDataBase('user', 'pass','db');
+$mysqliLog->newlog('Message');
+$mysqliLog->writelog();
+?>
